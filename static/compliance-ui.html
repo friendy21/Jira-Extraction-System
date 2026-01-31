@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JIRA Compliance Dashboard - Live Data</title>
+
+    <!-- Tabulator CSS -->
+    <link href="https://unpkg.com/tabulator-tables@6.3.0/dist/css/tabulator.min.css" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: white;
+            border-radius: 16px 16px 0 0;
+            padding: 30px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .header h1::before {
+            content: "📊";
+            font-size: 2.2rem;
+        }
+
+        .last-updated {
+            font-size: 0.9rem;
+            color: #666;
+        }
+
+        .refresh-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: #f0f0f0;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: #555;
+        }
+
+        .refresh-indicator.active {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: #667eea;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+            padding: 20px 0;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .control-group label {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .control-group select,
+        .control-group input {
+            padding: 10px 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            min-width: 180px;
+            transition: all 0.3s ease;
+        }
+
+        .control-group select:focus,
+        .control-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-left: auto;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover:not(:disabled) {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .btn-danger {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-danger:hover:not(:disabled) {
+            background: #c82333;
+            transform: translateY(-2px);
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .table-container {
+            background: white;
+            border-radius: 0 0 16px 16px;
+            padding: 0;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+        }
+
+        #compliance-table {
+            font-size: 0.9rem;
+        }
+
+        .footer {
+            background: white;
+            border-radius: 16px;
+            padding: 20px 30px;
+            margin-top: 20px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #333;
+        }
+
+        .stat-label {
+            font-size: 0.85rem;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .stat-value.pass {
+            color: #28a745;
+        }
+
+        .stat-value.fail {
+            color: #dc3545;
+        }
+
+        .alert {
+            padding: 16px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert.show {
+            display: block;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        /* Tabulator custom styling */
+        .tabulator .tabulator-header {
+            background: #1F4E79;
+            color: white;
+            font-weight: 600;
+        }
+
+        .tabulator .tabulator-header .tabulator-col {
+            background: #1F4E79;
+            border-right: 1px solid #2c5f94;
+        }
+
+        .tabulator .tabulator-header .tabulator-col-title {
+            color: white;
+        }
+
+        .tabulator-row.pass {
+            background-color: #d4edda !important;
+        }
+
+        .tabulator-row.fail {
+            background-color: #f8d7da !important;
+        }
+
+        .compliance-pass {
+            background: #28a745;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .compliance-fail {
+            background: #dc3545;
+            color: white;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 1.5rem;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .button-group {
+                margin-left: 0;
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .footer {
+                flex-direction: column;
+                gap: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Alert Messages -->
+        <div id="alertSuccess" class="alert alert-success"></div>
+        <div id="alertError" class="alert alert-error"></div>
+
+        <!-- Header -->
+        <div class="header">
+            <div class="header-top">
+                <div>
+                    <h1>JIRA Compliance Dashboard</h1>
+                    <p class="last-updated">Last Updated: <span id="lastUpdated">Loading...</span></p>
+                </div>
+                <div class="refresh-indicator" id="refreshIndicator">
+                    <span id="refreshStatus">⏱️ Next refresh in <span id="countdown">60:00</span></span>
+                </div>
+            </div>
+
+            <!-- Controls -->
+            <div class="controls">
+                <div class="control-group">
+                    <label for="teamSelect">Team Filter</label>
+                    <select id="teamSelect">
+                        <option value="">All Teams</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <label for="weekSelect">Week</label>
+                    <select id="weekSelect">
+                        <option value="0">Current Week</option>
+                        <option value="1">Last Week</option>
+                        <option value="2">2 Weeks Ago</option>
+                        <option value="3">3 Weeks Ago</option>
+                        <option value="4">4 Weeks Ago</option>
+                    </select>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn btn-primary" id="refreshBtn">
+                        🔄 Refresh
+                    </button>
+                    <button class="btn btn-success" id="exportExcelBtn">
+                        📊 Export Excel
+                    </button>
+                    <button class="btn btn-danger" id="exportPdfBtn">
+                        📄 Export PDF
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table Container -->
+        <div class="table-container">
+            <div id="compliance-table"></div>
+        </div>
+
+        <!-- Footer Stats -->
+        <div class="footer">
+            <div class="stat-item">
+                <div class="stat-value" id="totalEmployees">0</div>
+                <div class="stat-label">Total Employees</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value pass" id="passCount">0</div>
+                <div class="stat-label">Passing</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value fail" id="failCount">0</div>
+                <div class="stat-label">Failing</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value" id="passRate">0%</div>
+                <div class="stat-label">Pass Rate</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabulator JS -->
+    <script src="https://unpkg.com/tabulator-tables@6.3.0/dist/js/tabulator.min.js"></script>
+
+    <!-- SheetJS for Excel export -->
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
+
+    <!-- jsPDF for PDF export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+    <script>
+        const API_BASE = '';
+        let table;
+        let autoRefreshInterval;
+        let countdownInterval;
+        let remainingSeconds = 3600; // 1 hour in seconds
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeTable();
+            loadTeams();
+            loadData();
+            startAutoRefresh();
+
+            // Event listeners
+            document.getElementById('refreshBtn').addEventListener('click', () => loadData());
+            document.getElementById('exportExcelBtn').addEventListener('click', () => exportToExcel());
+            document.getElementById('exportPdfBtn').addEventListener('click', () => exportToPDF());
+            document.getElementById('teamSelect').addEventListener('change', () => loadData());
+            document.getElementById('weekSelect').addEventListener('change', () => loadData());
+        });
+
+        // Initialize Tabulator table
+        function initializeTable() {
+            table = new Tabulator("#compliance-table", {
+                layout: "fitDataStretch",
+                responsiveLayout: "collapse",
+                pagination: false,
+                height: "600px",
+                placeholder: "No compliance data available",
+                columns: [
+                    {
+                        title: "Employee Name",
+                        field: "employee_name",
+                        width: 180,
+                        frozen: true,
+                        headerFilter: "input"
+                    },
+                    {
+                        title: "Week Start Date",
+                        field: "week_start_date",
+                        width: 140,
+                        sorter: "date",
+                        sorterParams: { format: "YYYY-MM-DD" }
+                    },
+                    {
+                        title: "Status Hygiene Correct",
+                        field: "status_hygiene",
+                        width: 180,
+                        headerFilter: "input"
+                    },
+                    {
+                        title: "Any Tasks Cancelled w/o Approval",
+                        field: "cancellation",
+                        width: 240,
+                        headerFilter: "input"
+                    },
+                    {
+                        title: "Wed/Fri Updates Shared",
+                        field: "update_frequency",
+                        width: 180,
+                        headerFilter: "input"
+                    },
+                    {
+                        title: "Roles & Ownership Correct",
+                        field: "role_ownership",
+                        width: 200,
+                        headerFilter: "input"
+                    },
+                    {
+                        title: "Documentation & Traceability Complete",
+                        field: "documentation",
+                        width: 260,
+                        headerFilter: "input"
+                    },
+                    {
+                        title: "Lifecycle Adherence",
+                        field: "lifecycle",
+                        width: 160,
+                        headerFilter: "input"
+                    },
+                    {
+                        title: "Zero-Tolerance Violation",
+                        field: "zero_tolerance",
+                        width: 180,
+                        headerFilter: "input"
+                    },
+                    {
+                        title: "Overall Compliance (Pass/Fail)",
+                        field: "overall_compliance",
+                        width: 200,
+                        formatter: function (cell) {
+                            const value = cell.getValue();
+                            if (value === "Pass") {
+                                return '<div class="compliance-pass">Pass</div>';
+                            } else {
+                                return '<div class="compliance-fail">Fail</div>';
+                            }
+                        },
+                        headerFilter: "list",
+                        headerFilterParams: { values: { "": "All", "Pass": "Pass", "Fail": "Fail" } }
+                    },
+                    {
+                        title: "Auditor's Notes",
+                        field: "auditor_notes",
+                        width: 400,
+                        formatter: "textarea"
+                    }
+                ],
+                rowFormatter: function (row) {
+                    const data = row.getData();
+                    if (data.overall_compliance === "Pass") {
+                        row.getElement().classList.add("pass");
+                    } else {
+                        row.getElement().classList.add("fail");
+                    }
+                }
+            });
+        }
+
+        // Load teams from API
+        async function loadTeams() {
+            try {
+                const response = await fetch(`${API_BASE}/api/reports/teams`);
+                const data = await response.json();
+
+                if (data.success && data.teams) {
+                    const select = document.getElementById('teamSelect');
+                    data.teams.forEach(team => {
+                        const option = document.createElement('option');
+                        option.value = team.id;
+                        option.textContent = `${team.name} (${team.code})`;
+                        select.appendChild(option);
+                    });
+                }
+            } catch (error) {
+                console.error('Failed to load teams:', error);
+            }
+        }
+
+        // Load compliance data
+        async function loadData() {
+            const teamId = document.getElementById('teamSelect').value;
+            const weekOffset = document.getElementById('weekSelect').value;
+
+            // Show loading indicator
+            document.getElementById('refreshIndicator').classList.add('active');
+            document.getElementById('refreshStatus').innerHTML = '<span class="spinner"></span> Loading data...';
+
+            try {
+                const params = new URLSearchParams();
+                if (teamId) params.append('team_id', teamId);
+                params.append('week_offset', weekOffset);
+
+                const response = await fetch(`${API_BASE}/api/reports/compliance/live-data?${params}`);
+                const result = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(result.error || 'Failed to load data');
+                }
+
+                if (result.success) {
+                    // Update table
+                    table.setData(result.data);
+
+                    // Update stats
+                    updateStats(result.data);
+
+                    // Update last updated time
+                    document.getElementById('lastUpdated').textContent = new Date().toLocaleString();
+
+                    showSuccess(`Loaded ${result.count} compliance records`);
+                } else {
+                    throw new Error(result.error || 'Unknown error');
+                }
+            } catch (error) {
+                console.error('Failed to load compliance data:', error);
+                showError('Failed to load compliance data: ' + error.message);
+            } finally {
+                // Reset refresh indicator
+                document.getElementById('refreshIndicator').classList.remove('active');
+                updateCountdownDisplay();
+            }
+        }
+
+        // Update statistics
+        function updateStats(data) {
+            const total = data.length;
+            const passCount = data.filter(row => row.overall_compliance === 'Pass').length;
+            const failCount = total - passCount;
+            const passRate = total > 0 ? ((passCount / total) * 100).toFixed(1) : 0;
+
+            document.getElementById('totalEmployees').textContent = total;
+            document.getElementById('passCount').textContent = passCount;
+            document.getElementById('failCount').textContent = failCount;
+            document.getElementById('passRate').textContent = passRate + '%';
+        }
+
+        // Auto-refresh functionality
+        function startAutoRefresh() {
+            // Refresh every hour
+            autoRefreshInterval = setInterval(() => {
+                loadData();
+                remainingSeconds = 3600; // Reset countdown
+            }, 3600000); // 1 hour
+
+            // Countdown timer
+            countdownInterval = setInterval(() => {
+                remainingSeconds--;
+                if (remainingSeconds < 0) {
+                    remainingSeconds = 3600;
+                }
+                updateCountdownDisplay();
+            }, 1000);
+        }
+
+        function updateCountdownDisplay() {
+            const minutes = Math.floor(remainingSeconds / 60);
+            const seconds = remainingSeconds % 60;
+            const display = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            document.getElementById('countdown').textContent = display;
+            document.getElementById('refreshStatus').innerHTML = `⏱️ Next refresh in <span id="countdown">${display}</span>`;
+        }
+
+        // Export to Excel
+        function exportToExcel() {
+            table.download("xlsx", "compliance_report.xlsx", {
+                sheetName: "Compliance Data"
+            });
+            showSuccess('Excel file downloaded successfully');
+        }
+
+        // Export to PDF
+        function exportToPDF() {
+            table.download("pdf", "compliance_report.pdf", {
+                orientation: "landscape",
+                title: "JIRA Compliance Report",
+                autoTable: {
+                    styles: {
+                        fontSize: 8,
+                        cellPadding: 2
+                    },
+                    headStyles: {
+                        fillColor: [31, 78, 121],
+                        textColor: 255
+                    }
+                }
+            });
+            showSuccess('PDF file downloaded successfully');
+        }
+
+        // UI Helper Functions
+        function showSuccess(message) {
+            const alert = document.getElementById('alertSuccess');
+            alert.textContent = '✅ ' + message;
+            alert.classList.add('show');
+            setTimeout(() => alert.classList.remove('show'), 5000);
+        }
+
+        function showError(message) {
+            const alert = document.getElementById('alertError');
+            alert.textContent = '❌ ' + message;
+            alert.classList.add('show');
+            setTimeout(() => alert.classList.remove('show'), 5000);
+        }
+    </script>
+</body>
+
+</html>

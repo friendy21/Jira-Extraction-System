@@ -1,0 +1,149 @@
+# Compliance Rules Configuration
+# Customize compliance check criteria and thresholds
+
+# Status Hygiene Check
+status_hygiene:
+  # Define valid workflow transitions
+  # Format: from_status: [list of valid to_status values]
+  valid_transitions:
+    "To Do":
+      - "In Progress"
+      - "Backlog"
+    "Backlog":
+      - "To Do"
+      - "In Progress"
+    "In Progress":
+      - "Code Review"
+      - "Testing"
+      - "In Review"
+      - "Done"
+      - "To Do"  # Allow moving back to To Do
+    "Code Review":
+      - "In Progress"
+      - "Testing"
+      - "Done"
+    "In Review":
+      - "In Progress"
+      - "Testing"
+      - "Done"
+    "Testing":
+      - "In Progress"
+      - "Done"
+      - "Code Review"
+    "Done": []  # Terminal state
+    "Cancelled": []  # Terminal state
+
+# Cancellation Check
+cancellation:
+  # Keywords to search for in approval comments
+  approval_keywords:
+    - "approved"
+    - "approval"
+    - "authorize"
+    - "authorized"
+    - "confirmed"
+    - "ok to cancel"
+    - "approved for cancellation"
+  
+  # Time window (hours) to search for approval comments
+  # around the cancellation time
+  approval_window_hours: 24
+
+# Update Frequency Check
+update_frequency:
+  # Days of week requiring updates (0=Monday, 6=Sunday)
+  required_days:
+    - 2  # Wednesday
+    - 4  # Friday
+  
+  # Allow partial compliance (comment on at least 1 day)
+  # If false, requires comments on ALL required days
+  allow_partial: true
+  
+  # Minimum comment length to count as an update
+  min_comment_length: 10
+
+# Role Ownership Check
+role_ownership:
+  # Require both reporter and assignee fields
+  require_reporter: true
+  require_assignee: true
+  
+  # Reporter and assignee must be different people
+  require_different_users: true
+  
+  # Optional: List of account IDs that are exempt from checks
+  # (e.g., service accounts, bots)
+  exempt_accounts: []
+
+# Documentation Check
+documentation:
+  # Minimum description length (characters)
+  min_description_length: 50
+  
+  # Require at least one of these
+  require_links: true  # Linked issues
+  require_attachments: false  # File attachments
+  
+  # Require due date (softer requirement)
+  require_due_date: false
+  
+  # Optional: Specific fields to check for
+  # required_custom_fields:
+  #   - "customfield_10001"  # Example custom field
+
+# Lifecycle Check
+lifecycle:
+  # Required status in the workflow before marking as Done
+  required_intermediate_status:
+    - "In Progress"
+  
+  # Optional: Minimum time in each status (hours)
+  # min_time_in_progress: 4
+
+# Zero-Tolerance Check
+zero_tolerance:
+  # Bulk change detection
+  bulk_change_threshold: 5  # Number of status changes
+  bulk_change_window_hours: 1  # Within this time window
+  
+  # Retroactive edit detection
+  retroactive_edit_threshold_hours: 24  # Changes older than this
+  
+  # Required fields that must not be missing
+  required_fields:
+    - "priority"
+    - "issuetype"
+    # - "assignee"  # Already covered by role_ownership
+    # - "duedate"   # Can add if critical
+
+# Overall Compliance
+overall:
+  # Pass/Fail logic
+  # Options: "strict" (all must pass), "majority" (51%+), "custom"
+  pass_fail_logic: "strict"
+  
+  # If using "custom" logic, specify weights
+  # check_weights:
+  #   status_hygiene: 1.5
+  #   cancellation: 2.0
+  #   update_frequency: 1.0
+  #   role_ownership: 1.5
+  #   documentation: 1.0
+  #   lifecycle: 1.5
+  #   zero_tolerance: 3.0  # Critical
+
+# Reporting Options
+reporting:
+  # Include only failures in auditor notes, or all findings
+  notes_include_passes: false
+  
+  # Default date range (weeks) if not specified
+  default_weeks: 4
+  
+  # Output directory for reports
+  output_directory: "./outputs"
+  
+  # Report filename format
+  # Available variables: {date}, {timestamp}, {team_id}
+  filename_format: "JIRA_Compliance_Report_{timestamp}.xlsx"

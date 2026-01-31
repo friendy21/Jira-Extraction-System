@@ -1,0 +1,62 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: jira_mcp_db
+    environment:
+      POSTGRES_DB: jira_dashboard
+      POSTGRES_USER: jira_etl
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-changeme}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./database/views.sql:/docker-entrypoint-initdb.d/02-views.sql:ro
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U jira_etl -d jira_dashboard" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+
+  # Jira MCP Application
+  app:
+    build: .
+    container_name: jira_mcp_app
+    environment:
+      # Database
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: jira_dashboard
+      DB_USER: jira_etl
+      DB_PASSWORD: ${DB_PASSWORD:-changeme}
+
+      # Jira credentials (required)
+      JIRA_URL: ${JIRA_URL}
+      JIRA_USERNAME: ${JIRA_USERNAME}
+      JIRA_API_TOKEN: ${JIRA_API_TOKEN}
+
+      # Flask
+      FLASK_SECRET_KEY: ${FLASK_SECRET_KEY:-dev-secret-change-this}
+      FLASK_DEBUG: "false"
+    ports:
+      - "${APP_PORT:-6922}:6922"
+    volumes:
+      - ./config:/app/config:ro
+      - ./outputs:/app/outputs
+      - ./logs:/app/logs
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import requests; requests.get('http://localhost:6922/health', timeout=5)" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    restart: unless-stopped
+
+volumes:
+  postgres_data:

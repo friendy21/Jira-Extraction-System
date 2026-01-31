@@ -1,0 +1,58 @@
+# Dependencies
+.env
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Logs
+logs/
+*.log
+
+# Output files
+outputs/
+*.xlsx
+*.xls
+
+# Database
+*.db
+*.sqlite3
+
+
+# Agent Artifacts
+brain/
+.agent/
+.gemini/
+
+# System Files
+.DS_Store
+Thumbs.db
