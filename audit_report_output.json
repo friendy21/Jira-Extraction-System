@@ -1,0 +1,158 @@
+{
+  "audit_window": {
+    "start_date": "UNKNOWN",
+    "end_date": "UNKNOWN"
+  },
+  "employees": [
+    {
+      "employee_name": "Bendangtila.Jamir",
+      "issues": [
+        {
+          "issue_key": "OH-197",
+          "summary": "UNKNOWN",
+          "type": "UNKNOWN",
+          "labels": [],
+          "status": "UNKNOWN",
+          "good_bad_unknown": "BAD",
+          "checks": [
+            {
+              "criterion_id": "C6",
+              "criterion_name": "Status Hygiene",
+              "result": "FAIL",
+              "severity": "NORMAL",
+              "evidence": [
+                {
+                  "issue_key": "OH-197",
+                  "field": "status_hygiene",
+                  "value_snippet": "No - Invalid transition: OH-197: Backlog → to do"
+                }
+              ],
+              "reason": "Provided dataset explicitly reports invalid status transition for OH-197."
+            },
+            {
+              "criterion_id": "C8",
+              "criterion_name": "Weekly Updates",
+              "result": "FAIL",
+              "severity": "NORMAL",
+              "evidence": [
+                {
+                  "issue_key": "OH-197",
+                  "field": "update_frequency",
+                  "value_snippet": "No"
+                }
+              ],
+              "reason": "Dataset marks update cadence as non-compliant."
+            },
+            {
+              "criterion_id": "C9",
+              "criterion_name": "Roles & Access",
+              "result": "FAIL",
+              "severity": "NORMAL",
+              "evidence": [
+                {
+                  "issue_key": "OH-197",
+                  "field": "role_ownership",
+                  "value_snippet": "No - Reporter = Assignee"
+                }
+              ],
+              "reason": "Dataset explicitly indicates incorrect ownership pattern (reporter equals assignee)."
+            },
+            {
+              "criterion_id": "C10",
+              "criterion_name": "Documentation/Traceability",
+              "result": "UNKNOWN",
+              "severity": "NORMAL",
+              "evidence": [
+                {
+                  "issue_key": "OH-197",
+                  "field": "documentation",
+                  "value_snippet": "Error"
+                }
+              ],
+              "reason": "The input shows an error state, not a verifiable pass/fail result with metadata-level fields."
+            },
+            {
+              "criterion_id": "C11",
+              "criterion_name": "Lifecycle Adherence",
+              "result": "FAIL",
+              "severity": "NORMAL",
+              "evidence": [
+                {
+                  "issue_key": "OH-197",
+                  "field": "lifecycle",
+                  "value_snippet": "No - OH-197: Skipped In Progress"
+                }
+              ],
+              "reason": "Dataset explicitly states lifecycle step was skipped."
+            },
+            {
+              "criterion_id": "C7",
+              "criterion_name": "Task Cancellation (Zero Tolerance)",
+              "result": "UNKNOWN",
+              "severity": "CRITICAL-UNKNOWN",
+              "evidence": [
+                {
+                  "issue_key": "OH-197",
+                  "field": "cancellation",
+                  "value_snippet": "No"
+                },
+                {
+                  "issue_key": "OH-197",
+                  "field": "zero_tolerance",
+                  "value_snippet": "Yes"
+                },
+                {
+                  "issue_key": "OH-197",
+                  "field": "auditor_notes",
+                  "value_snippet": "Zero-tolerance violation detected"
+                }
+              ],
+              "reason": "Zero-tolerance concern is indicated, but no explicit cancellation event record (status history/approval evidence) is provided to prove pass/fail."
+            },
+            {
+              "criterion_id": "M8",
+              "criterion_name": "History Integrity (Zero Tolerance)",
+              "result": "UNKNOWN",
+              "severity": "CRITICAL-UNKNOWN",
+              "evidence": [
+                {
+                  "issue_key": "OH-197",
+                  "field": "changelog",
+                  "value_snippet": "NOT PROVIDED"
+                }
+              ],
+              "reason": "Changelog/history entries are not provided, so integrity cannot be validated."
+            }
+          ]
+        }
+      ],
+      "employee_summary": {
+        "mit_proposed_count": "UNKNOWN",
+        "mit_created_count": "UNKNOWN",
+        "mit_closed_by_fri_eod_count": "UNKNOWN",
+        "non_mit_active_count": "UNKNOWN",
+        "recap_to_jira_coverage": "UNKNOWN",
+        "critical_failures": [
+          "C7 Task Cancellation: CRITICAL-UNKNOWN",
+          "M8 History Integrity: CRITICAL-UNKNOWN"
+        ],
+        "notes": "Input dataset contains only aggregate compliance fields for one employee and does not include full issue list, timestamps, labels, comments, approval records, or recap mappings."
+      }
+    }
+  ],
+  "org_summary": {
+    "totals": {
+      "employees_audited": 1,
+      "issues_evaluated": 1,
+      "bad_issues": 1,
+      "good_issues": 0,
+      "unknown_issues": 0,
+      "critical_flags": 2
+    },
+    "top_risks": [
+      "Zero-tolerance criteria cannot be conclusively verified due to missing changelog/approval evidence (CRITICAL-UNKNOWN).",
+      "Workflow hygiene failures explicitly reported (invalid transition, skipped lifecycle step, update cadence failure, role ownership issue).",
+      "MIT planning/creation/completion and recap conversion cannot be measured because required source fields are absent."
+    ]
+  }
+}
