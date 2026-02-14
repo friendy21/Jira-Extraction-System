@@ -112,6 +112,19 @@ def create_app(config_name: str = None) -> Flask:
                 'success': False,
                 'error': 'UI file not found'
             }), 404
+
+    # Audit Report UI
+    @app.route('/audit', methods=['GET'])
+    def audit_ui():
+        """Serve the detailed audit report UI."""
+        try:
+            return send_from_directory(app.static_folder, 'audit-report-ui.html')
+        except Exception as e:
+            logger.error(f"Failed to serve Audit UI: {e}")
+            return jsonify({
+                'success': False,
+                'error': 'Audit UI file not found'
+            }), 404
     
     # Error handlers
     @app.errorhandler(404)

@@ -9,7 +9,7 @@ from typing import List, Optional
 
 from sqlalchemy import (
     Boolean, Column, Date, DateTime, ForeignKey,
-    Integer, String, Text, UniqueConstraint, Index
+    Integer, String, Text, UniqueConstraint, Index, Float
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.declarative import declarative_base
@@ -335,7 +335,7 @@ class JiraIssue(Base):
     epic_name = Column(String(255))
     
     # Time tracking
-    story_points = Column(Decimal(10, 2))
+    story_points = Column(Float)
     original_estimate = Column(Integer)  # seconds
     remaining_estimate = Column(Integer)  # seconds
     time_spent = Column(Integer)  # seconds
@@ -364,7 +364,7 @@ class JiraIssue(Base):
     
     # Relationships
     project = relationship("JiraProject", back_populates="issues")
-    parent = relationship("JiraIssue", remote_side=[id], backref="subtasks")
+    # parent = relationship("JiraIssue", remote_side="[JiraIssue.id]", backref="subtasks")
     issue_type = relationship("JiraIssueType")
     status = relationship("JiraStatus")
     priority = relationship("JiraPriority")
@@ -622,13 +622,13 @@ class DailyMetric(Base):
     backlog_count = Column(Integer, default=0)
     
     # Time metrics (in hours)
-    avg_resolution_time = Column(Decimal(10, 2))
-    avg_cycle_time = Column(Decimal(10, 2))
-    avg_lead_time = Column(Decimal(10, 2))
+    avg_resolution_time = Column(Float)
+    avg_cycle_time = Column(Float)
+    avg_lead_time = Column(Float)
     
     # Story points
-    points_committed = Column(Decimal(10, 2))
-    points_completed = Column(Decimal(10, 2))
+    points_committed = Column(Float)
+    points_completed = Column(Float)
     
     created_at = Column(DateTime, default=datetime.utcnow)
     
@@ -649,19 +649,19 @@ class SprintMetric(Base):
     
     # Commitment
     issues_committed = Column(Integer, default=0)
-    points_committed = Column(Decimal(10, 2), default=0)
+    points_committed = Column(Float, default=0)
     
     # Completion
     issues_completed = Column(Integer, default=0)
-    points_completed = Column(Decimal(10, 2), default=0)
+    points_completed = Column(Float, default=0)
     
     # Additional
     issues_added = Column(Integer, default=0)
     issues_removed = Column(Integer, default=0)
     
     # Velocity
-    velocity = Column(Decimal(10, 2))
-    completion_rate = Column(Decimal(5, 2))
+    velocity = Column(Float)
+    completion_rate = Column(Float)
     
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

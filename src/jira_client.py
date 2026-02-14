@@ -151,28 +151,63 @@ class JiraClient:
         self,
         endpoint: str,
         params: Dict = None,
+        json_data: Dict = None,
+        method: str = 'GET',
         data_key: str = 'values',
-        max_results: int = 100
+        max_results: int = 100,
+        pagination_strategy: str = 'offset'
     ) -> Generator[Dict, None, None]:
         """
         Paginate through API results.
         
         Args:
             endpoint: API endpoint
-            params: Query parameters
+            params: Query parameters (for GET)
+            json_data: JSON body data (for POST)
+            method: HTTP method (GET or POST)
             data_key: Key containing results in response
             max_results: Results per page
+            pagination_strategy: 'offset' (startAt) or 'cursor' (nextPageToken)
             
         Yields:
             Individual result items
         """
         params = params or {}
-        params['maxResults'] = max_results
+        json_data = (json_data or {}).copy()  # Copy to avoid modifying caller's dict
+        
+        if method == 'GET':
+            params['maxResults'] = max_results
+        else:
+            json_data['maxResults'] = max_results
+            
         start_at = 0
+        next_page_token = None
         
         while True:
-            params['startAt'] = start_at
-            response = self._make_request('GET', endpoint, params=params)
+            # Handle pagination parameters based on strategy
+            if pagination_strategy == 'offset':
+                if method == 'GET':
+                    params['startAt'] = start_at
+                else:
+                    json_data['startAt'] = start_at
+            elif pagination_strategy == 'cursor':
+                # Cursor-based pagination uses nextPageToken
+                if next_page_token:
+                    if method == 'GET':
+                        params['nextPageToken'] = next_page_token
+                    else:
+                        json_data['nextPageToken'] = next_page_token
+                
+                # IMPORTANT: Remove startAt if present, as it causes errors with cursor endpoints
+                if method == 'GET' and 'startAt' in params:
+                    del params['startAt']
+                if method == 'POST' and 'startAt' in json_data:
+                    del json_data['startAt']
+                
+            # Ensure we don't send empty dict as json body for GET requests
+            request_json = json_data if json_data else None
+            
+            response = self._make_request(method, endpoint, params=params, json_data=request_json)
             
             items = response.get(data_key, [])
             if not items:
@@ -181,14 +216,22 @@ class JiraClient:
             for item in items:
                 yield item
             
-            # Check if there are more results
-            total = response.get('total', 0)
-            start_at += len(items)
-            
-            if start_at >= total:
-                break
-            
-            logger.debug(f"Fetched {start_at}/{total} items from {endpoint}")
+            # Prepare for next page
+            if pagination_strategy == 'offset':
+                # Check if there are more results
+                total = response.get('total', 0)
+                start_at += len(items)
+                
+                if start_at >= total:
+                    break
+                logger.debug(f"Fetched {start_at}/{total} items from {endpoint}")
+                
+            elif pagination_strategy == 'cursor':
+                # Get next page token
+                next_page_token = response.get('nextPageToken')
+                if not next_page_token:
+                    break
+                logger.debug(f"Fetched page from {endpoint}, getting next page...")
     
     # ========================================
     # Project Methods
@@ -240,21 +283,43 @@ class JiraClient:
             Issue dictionaries
         """
         logger.info(f"Fetching issues with JQL: {jql[:100]}...")
-        
-        params = {'jql': jql}
+    
+        # Sanitize JQL (remove newlines from multiline strings)
+        jql = jql.replace('\n', ' ').strip()
+    
+        # Use POST /api/3/search/jql as required by latest Jira Cloud API
+        # Reference: https://developer.atlassian.com/changelog/#CHANGE-2046
+        json_data = {'jql': jql}
         
         if fields:
+            json_data['fields'] = fields
+        if expand:
+            # For search/jql endpoint, expand should be sent as a list
+            json_data['expand'] = expand if isinstance(expand, list) else [expand]
+            
+        # Fetch issues with pagination (POST method)
+        # Using cursor-based pagination (nextPageToken) which is required for this endpoint
+        for issue in self._paginate(
+            'api/3/search/jql',
+            json_data=json_data,
+            method='POST',
+            data_key='issues',
+            max_results=max_results,
+            pagination_strategy='cursor'
+        ):
+            yield issue
+
+    def get_issue(self, key: str, fields: List[str] = None, expand: List[str] = None) -> Dict:
+        """
+        Fetch single issue details.
+        """
+        params = {}
+        if fields:
             params['fields'] = ','.join(fields)
-        
         if expand:
             params['expand'] = ','.join(expand)
-        
-        yield from self._paginate(
-            'api/3/search',
-            params=params,
-            data_key='issues',
-            max_results=max_results
-        )
+            
+        return self._make_request('GET', f'api/3/issue/{key}', params=params)    
     
     def fetch_issues_since(
         self,

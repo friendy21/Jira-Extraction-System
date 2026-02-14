@@ -252,7 +252,9 @@ class ComplianceReportBuilder:
         results = {}
         for check_name, check in self.checks.items():
             try:
-                results[check_name] = check.evaluate(issues, employee)
+                # New checks return dict, legacy builder expects str
+                check_result = check.evaluate(issues, employee)
+                results[check_name] = self._map_result_to_legacy_format(check_result, check_name)
             except Exception as e:
                 logger.error(f"Check {check_name} failed for {employee.display_name}: {e}")
                 results[check_name] = "Error"
@@ -262,6 +264,41 @@ class ComplianceReportBuilder:
         
         # Generate auditor notes
         notes = self._generate_auditor_notes(results)
+        
+        return {
+            'employee_name': employee.display_name,
+            'week_start': week_start,
+            'status_hygiene': results['status_hygiene'],
+            'cancellation': results['cancellation'],
+            'update_frequency': results['update_frequency'],
+            'role_ownership': results['role_ownership'],
+            'documentation': results['documentation'],
+            'lifecycle': results['lifecycle'],
+            'zero_tolerance': results['zero_tolerance'],
+            'overall_compliance': overall,
+            'auditor_notes': notes
+        }
+
+    def _map_result_to_legacy_format(self, result: Dict[str, Any], check_name: str) -> str:
+        """Map new dictionary result to legacy string format."""
+        status = result.get('status', 'NA')
+        reason = result.get('reason', '')
+        
+        if status == 'Pass':
+            if check_name == 'cancellation':
+                return "No" # cancellations: No means Pass (no unauthorized cancellations)
+            if check_name == 'zero_tolerance':
+                return "No" # zero_tolerance: No means Pass (no violations)
+            return "Yes"
+            
+        elif status == 'Fail':
+            if check_name == 'cancellation':
+                return f"Yes - {reason}" # cancellation: Yes means Fail (violation found)
+            if check_name == 'zero_tolerance':
+                return "Yes" # zero_tolerance: Yes means Fail
+            return f"No - {reason}"
+            
+        return "NA"
         
         return {
             'employee_name': employee.display_name,

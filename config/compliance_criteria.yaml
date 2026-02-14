@@ -1,0 +1,268 @@
+# Jira Compliance Criteria Configuration
+# Defines all compliance checks with success/failure criteria and zero-tolerance flags
+# Based on Excel audit sheets: Core Process Compliance (Sheet 1) and Manual Compliance (Sheet 2)
+
+version: "1.0"
+last_updated: "2026-02-12"
+
+# ==============================================================================
+# SHEET 1: CORE PROCESS COMPLIANCE (Automatable Checks)
+# ==============================================================================
+
+core_process_compliance:
+  
+  mit_planning:
+    category: "MIT Planning"
+    question: "Were 3–5 MITs proposed on time?"
+    zero_tolerance: false
+    deliverable: "3–5 MITs proposed weekly per IC"
+    success_looks_like: "Proposals Set, approved Mon EOD"
+    failure_looks_like: "Missing/late proposals"
+    audit_question: "Were 3-5 MITs proposed on time?"
+    
+  mit_creation:
+    category: "MIT Creation"
+    question: "Do all approved MITs exist as tasks?"
+    zero_tolerance: false
+    deliverable: "MIT Jira tickets created"
+    success_looks_like: "All approved MITs in Jira by Mon EOD (Label: MIT, Priority: High, Reporter: Manager, owner/due date/output)"
+    failure_looks_like: "Approved MITs not created"
+    audit_question: "Do all approved MITs exist as tasks?"
+    
+  mit_completion:
+    category: "MIT Completion"
+    question: "Were MITs closed by Fri EOD?"
+    zero_tolerance: false
+    deliverable: "MITs closed weekly"
+    success_looks_like: "To Waiting for Review/Done by Fri EOD"
+    failure_looks_like: "MITs left open"
+    audit_question: "Were MITs closed by Fri EOD?"
+    
+  non_mit_tracking:
+    category: "Non-MIT Tracking"
+    question: "Are ≥3 Non-MITs present/active weekly?"
+    zero_tolerance: false
+    deliverable: "Min 3–5 active Non-MITs per IC/week"
+    success_looks_like: "Ongoing tasks captured (owner/due date/description)"
+    failure_looks_like: "<3 Non-MITs, work outside Jira"
+    audit_question: "Are ≥3 Non-MITs present/active weekly?"
+    
+  recap_to_jira_conversion:
+    category: "Recap-to-Jira Conversion"
+    question: "Does every action step have a Jira task?"
+    zero_tolerance: false
+    deliverable: "100% action items → Jira tasks"
+    success_looks_like: "Immediate task creation w/ owner/deadline/link to recap"
+    failure_looks_like: "Actions missing tasks"
+    audit_question: "Does every action step have a Jira task?"
+    
+  status_hygiene:
+    category: "Status Hygiene"
+    question: "Do statuses reflect actual execution/blockers?"
+    zero_tolerance: false
+    deliverable: "Correct status usage (Backlog/To Do/In Progress/Blocked/Waiting for Review/Done/Cancelled)"
+    success_looks_like: "Status matches work, blockers detailed"
+    failure_looks_like: "Incorrect/cosmetic statuses"
+    audit_question: "Do statuses reflect actual execution/blockers?"
+    
+  task_cancellation:
+    category: "Task Cancellation"
+    question: "Were tasks cancelled without approval?"
+    zero_tolerance: true  # ZERO TOLERANCE
+    deliverable: "Only w/ Manager alignment"
+    success_looks_like: "Documented reason: Manager-approved"
+    failure_looks_like: "Random IC cancellations"
+    audit_question: "Were tasks cancelled without approval?"
+    
+  weekly_updates:
+    category: "Weekly Updates"
+    question: "Were updates shared per cadence?"
+    zero_tolerance: false
+    deliverable: "Wed/Fri MIT one-liners w/ links"
+    success_looks_like: "Shared in channel; consolidated by Manager"
+    failure_looks_like: "No mid-week/EOW updates"
+    audit_question: "Were updates shared per cadence?"
+    
+  roles_and_access:
+    category: "Roles & Access"
+    question: "Is ownership/access correct?"
+    zero_tolerance: false
+    deliverable: "IC: create/update. Manager: oversee; Auditor: read-only"
+    success_looks_like: "Correct Reporter/Assignee, no unauthorized access"
+    failure_looks_like: "Role violations"
+    audit_question: "Is ownership/access correct?"
+    
+  documentation_traceability:
+    category: "Documentation/Traceability"
+    question: "Is metadata complete with audit trail?"
+    zero_tolerance: false
+    deliverable: "Full metadata/audit logs"
+    success_looks_like: "Timestamps, links, acceptance criteria, status trail"
+    failure_looks_like: "Missing fields/trail"
+    audit_question: "Is metadata complete w/ audit trail?"
+    
+  lifecycle_adherence:
+    category: "Lifecycle Adherence"
+    question: "Does lifecycle follow SOP steps/timings?"
+    zero_tolerance: false
+    deliverable: "Plan→Confirm→Create→Execute→Update→Review→Close→Clean-up"
+    success_looks_like: "Full flow weekly, min volumes met (MITs 3-5, Non-MITs 3-10)"
+    failure_looks_like: "Deviations/gaps in flow"
+    audit_question: "Does lifecycle follow SOP steps/timings?"
+
+
+# ==============================================================================
+# SHEET 2: MANUAL JIRA COMPLIANCE (Non-Automatable Checks)
+# ==============================================================================
+
+manual_compliance:
+  
+  comment_quality:
+    category: "Comment Quality"
+    question: "Do comments clearly explain the work/status?"
+    zero_tolerance: false
+    deliverable: "Clear, meaningful comments present"
+    success_looks_like: "Comments explain context, progress, decisions, or blockers"
+    failure_looks_like: "Work rationale one-word, non-informative comments"
+    audit_question: "Do comments clearly explain the work/status?"
+    heuristics:
+      min_word_count: 10
+      quality_keywords: ["completed", "blocked", "tested", "reviewed", "because", "fixed", "implemented", "deployed", "issue", "resolved"]
+      low_quality_indicators: ["done", "ok", "noted", "yes", "no", ".", "👍"]
+    
+  missing_comments:
+    category: "Missing Comments"
+    question: "Is there at least one meaningful comment?"
+    zero_tolerance: false
+    deliverable: "At least one substantive comment"
+    success_looks_like: "Work rationale and updates documented in comments"
+    failure_looks_like: "No comments present at all"
+    audit_question: "Is there at least one meaningful comment?"
+    
+  screenshot_only_evidence:
+    category: "Screenshot-Only Evidence"
+    question: "Is evidence explained in comments?"
+    zero_tolerance: false
+    deliverable: "Screenshot + explanatory comment"
+    success_looks_like: "Screenshot accompanied by context/explanation"
+    failure_looks_like: "Only screenshot attached without any comment"
+    audit_question: "Is evidence explained in comments?"
+    
+  doc_link_only_evidence:
+    category: "Doc-Link-Only Evidence"
+    question: "Is the linked doc contextually explained?"
+    zero_tolerance: false
+    deliverable: "Doc link + summary comment"
+    success_looks_like: "Link is accompanied by summary of relevance"
+    failure_looks_like: "Only document link without explanation"
+    audit_question: "Is the linked doc contextually explained?"
+    
+  description_quality:
+    category: "Description Quality"
+    question: "Is the description complete and clear?"
+    zero_tolerance: false
+    deliverable: "Complete, clear task description"
+    success_looks_like: "Description explains what/why/how"
+    failure_looks_like: "Description missing, unclear, or unhelpful"
+    audit_question: "Is the description complete and clear?"
+    heuristics:
+      min_length: 50
+      structure_keywords: ["what", "why", "how", "goal", "objective", "steps", "requirements"]
+    
+  title_quality:
+    category: "Title Quality"
+    question: "Does the title clearly describe the task?"
+    zero_tolerance: false
+    deliverable: "Clear, specific task title"
+    success_looks_like: "Title accurately reflects scope and outcome"
+    failure_looks_like: "Vague, generic, or misleading title"
+    audit_question: "Does the title clearly describe the task?"
+    heuristics:
+      min_length: 10
+      max_length: 100
+      avoid_generic: ["task", "work", "stuff", "thing", "misc", "various", "update"]
+    
+  multiple_issues_in_one_ticket:
+    category: "Multiple Issues in One Ticket"
+    question: "Does the ticket represent only one issue?"
+    zero_tolerance: false
+    deliverable: "Single issue per Jira ticket"
+    success_looks_like: "Ticket tracks one clear piece of work"
+    failure_looks_like: "Multiple unrelated issues bundled together"
+    audit_question: "Does the ticket represent only one issue?"
+    heuristics:
+      multiple_issue_indicators: ["and", "also", "plus", "additionally", ";", "1.", "2.", "3."]
+      max_checkbox_count: 5
+    
+  history_integrity:
+    category: "History Integrity"
+    question: "Does the history reflect real execution?"
+    zero_tolerance: true  # ZERO TOLERANCE
+    deliverable: "Accurate, honest status/history"
+    success_looks_like: "Status changes align with actual execution"
+    failure_looks_like: "Manipulated history or retroactive updates"
+    audit_question: "Does the history reflect real execution?"
+    
+  acceptance_criteria_relevance:
+    category: "Acceptance Criteria Relevance"
+    question: "Are acceptance criteria relevant and usable?"
+    zero_tolerance: false
+    deliverable: "Relevant, testable acceptance criteria"
+    success_looks_like: "AC aligns with task outcome"
+    failure_looks_like: "AC is irrelevant, copy-pasted, or meaningless"
+    audit_question: "Are acceptance criteria relevant and usable?"
+    heuristics:
+      min_length: 20
+      testable_keywords: ["verify", "confirm", "test", "should", "must", "validate", "check"]
+    
+  productivity_validity:
+    category: "Productivity Validity"
+    question: "Does the work demonstrate real productivity?"
+    zero_tolerance: false
+    deliverable: "Work output matches claimed effort"
+    success_looks_like: "Evidence supports time/impact claimed"
+    failure_looks_like: "Inflated effort, low-value or busywork"
+    audit_question: "Does the work demonstrate real productivity?"
+    
+  evidence_relevance:
+    category: "Evidence Relevance"
+    question: "Does the evidence prove completion?"
+    zero_tolerance: false
+    deliverable: "Evidence directly supports completion"
+    success_looks_like: "Evidence clearly proves task completion"
+    failure_looks_like: "Evidence unrelated, weak, or misleading"
+    audit_question: "Does the evidence prove completion?"
+
+
+# ==============================================================================
+# GLOBAL SETTINGS
+# ==============================================================================
+
+settings:
+  # Zero tolerance behavior
+  zero_tolerance_stops_evaluation: true
+  
+  # Comment quality scoring weights
+  comment_scoring:
+    word_count_weight: 0.3
+    keyword_presence_weight: 0.4
+    low_quality_penalty_weight: 0.3
+    min_passing_score: 0.6
+  
+  # MIT identification (to be configured per organization)
+  mit_identification:
+    method: "label"  # Options: label, custom_field, issue_type, naming_pattern
+    label_name: "MIT"
+    custom_field_id: null
+    issue_type_name: null
+    naming_pattern: null
+  
+  # Timing thresholds
+  timing:
+    mit_proposal_deadline_day: "Monday"
+    mit_proposal_deadline_time: "17:00"
+    mit_completion_deadline_day: "Friday"
+    mit_completion_deadline_time: "17:00"
+    update_required_days: ["Wednesday", "Friday"]
+    approval_comment_window_hours: 24
+    retroactive_edit_threshold_hours: 24

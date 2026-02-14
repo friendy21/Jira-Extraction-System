@@ -351,69 +351,81 @@ def generate_compliance_demo():
         }), 500
 
 
-@reports_bp.route('/compliance/live-data', methods=['GET'])
-def get_live_compliance_data():
-    """
-    Get live compliance data for dashboard display.
-    
-    Query params:
-        team_id: Optional team filter (integer)
-        week_offset: Number of weeks back from current (default: 0)
-    
-    Returns:
-        JSON array of compliance records with columns:
-        - employee_name
-        - week_start_date
-        - status_hygiene
-        - cancellation
-        - update_frequency
-        - role_ownership
-        - documentation
-        - lifecycle
-        - zero_tolerance
-        - overall_compliance
-        - auditor_notes
-    """
-    try:
-        # Parse query parameters
-        team_id = request.args.get('team_id', type=int)
-        week_offset = request.args.get('week_offset', type=int, default=0)
-        
-        # Validate week_offset
-        if week_offset < 0 or week_offset > 52:
-            return jsonify({
-                'success': False,
-                'error': 'week_offset must be between 0 and 52'
-            }), 400
-        
-        logger.info(f"Live compliance data requested: team_id={team_id}, week_offset={week_offset}")
-        
-        # Initialize service
-        from src.reports.compliance_data_service import ComplianceDataService
-        
-        jira_client = JiraClient()
-        service = ComplianceDataService(jira_client)
-        
-        # Get live data
-        compliance_data = service.get_live_data(
-            team_id=team_id,
-            week_offset=week_offset
-        )
-        
-        return jsonify({
-            'success': True,
-            'count': len(compliance_data),
-            'data': compliance_data,
-            'metadata': {
-                'team_id': team_id,
-                'week_offset': week_offset,
-                'generated_at': datetime.now().isoformat()
-            }
-        })
-        
-    except Exception as e:
-        logger.error(f"Failed to get live compliance data: {e}", exc_info=True)
         return jsonify({
             'success': False,
             'error': str(e)
         }), 500
+
+
+# ============================================
+# AUDIT REPORT ENDPOINTS (NEW)
+# ============================================
+
+@reports_bp.route('/audit/generate', methods=['POST'])
+def generate_audit_report():
+    """
+    Generate detailed ticket-by-ticket compliance audit report.
+    
+    JSON Body:
+        ticket_keys: List[str] - List of Jira issue keys
+        format: str - "markdown" or "json" (default: markdown)
+    """
+    try:
+        data = request.get_json()
+        if not data or 'ticket_keys' not in data:
+            return jsonify({'success': False, 'error': 'ticket_keys required'}), 400
+            
+        ticket_keys = data['ticket_keys']
+        output_format = data.get('format', 'markdown')
+        
+        logger.info(f"Audit report requested for {len(ticket_keys)} tickets, format={output_format}")
+        
+        from src.reports.audit_report_builder import AuditReportBuilder
+        
+        jira_client = JiraClient()
+        builder = AuditReportBuilder(jira_client)
+        
+        report_path = builder.generate_audit_report(ticket_keys, output_format)
+        
+        # If Markdown, return file content directly for preview if requested
+        download_url = f'/api/reports/download/audit_reports/{os.path.basename(report_path)}'
+        
+        # Ensure download endpoint can serve from audit_reports subdir (needs update in download_report)
+        # For now, let's just make sure output_dir in download_report handles subdirs or flat structure.
+        # AuditReportBuilder defaults to ./outputs/audit_reports
+        
+        return jsonify({
+            'success': True,
+            'message': 'Audit report generated',
+            'file_path': report_path,
+            'download_url': download_url
+        })
+
+    except Exception as e:
+        logger.error(f"Audit report generation failed: {e}", exc_info=True)
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@reports_bp.route('/audit/ticket/<issue_key>', methods=['GET'])
+def check_ticket_compliance(issue_key: str):
+    """Evaluate compliance for a single ticket."""
+    try:
+        from src.reports.audit_report_builder import AuditReportBuilder
+        
+        jira_client = JiraClient()
+        builder = AuditReportBuilder(jira_client)
+        
+        # Hack: leverage existing private methods for single ticket check
+        # Ideally AuditReportBuilder would expose public check_ticket method
+        ticket = builder._fetch_tickets_data([issue_key])[0]
+        result = builder._evaluate_ticket(ticket)
+        
+        return jsonify({
+            'success': True,
+            'issue_key': issue_key,
+            'result': result
+        })
+        
+    except Exception as e:
+        logger.error(f"Ticket check failed: {e}", exc_info=True)
+        return jsonify({'success': False, 'error': str(e)}), 500

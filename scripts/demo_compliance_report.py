@@ -80,140 +80,168 @@ def create_demo_compliance_report():
         cell.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
         cell.border = border
     
-    # Create mock data (realistic scenarios)
+    # Create mock data (realistic scenarios) - 30 employees across 3 weeks
     # Week starts on Monday (ISO week)
     week1 = datetime(2026, 1, 26)  # Monday, Jan 26, 2026
     week2 = datetime(2026, 2, 2)   # Monday, Feb 2, 2026
     week3 = datetime(2026, 2, 9)   # Monday, Feb 9, 2026
     
-    mock_data = [
-        # Week 1 - Gaurav Dadheech (Multiple violations)
-        {
-            'employee': 'Gaurav Dadheech',
-            'week': week1,
-            'status_hygiene': 'No',
-            'cancellation': 'NA',
-            'updates': 'Yes',
-            'roles': 'No - Reporter = Assignee',
-            'documentation': 'No - Due date missing',
-            'lifecycle': 'Yes',
-            'zero_tolerance': 'No',
-            'overall': 'Fail',
-            'notes': 'MIT not properly created and updated; Reporter and Assignee are same person'
-        },
-        # Week 1 - Priya Sharma (Perfect compliance)
-        {
-            'employee': 'Priya Sharma',
-            'week': week1,
-            'status_hygiene': 'Yes',
-            'cancellation': 'No',
-            'updates': 'Yes',
-            'roles': 'Yes',
-            'documentation': 'Yes',
-            'lifecycle': 'Yes',
-            'zero_tolerance': 'No',
-            'overall': 'Pass',
-            'notes': 'All checks passed'
-        },
-        # Week 1 - Rahul Kumar (Missing updates)
-        {
-            'employee': 'Rahul Kumar',
-            'week': week1,
-            'status_hygiene': 'Yes',
-            'cancellation': 'No',
-            'updates': 'No',
-            'roles': 'Yes',
-            'documentation': 'No - No traceability links',
-            'lifecycle': 'Yes',
-            'zero_tolerance': 'No',
-            'overall': 'Fail',
-            'notes': 'Missing Wed/Fri updates; No linked issues found'
-        },
-        # Week 2 - Gaurav Dadheech (Improved but still issues)
-        {
-            'employee': 'Gaurav Dadheech',
-            'week': week2,
-            'status_hygiene': 'Yes',
-            'cancellation': 'No',
-            'updates': 'Partial',
-            'roles': 'Yes',
-            'documentation': 'Yes',
-            'lifecycle': 'Yes',
-            'zero_tolerance': 'No',
-            'overall': 'Fail',
-            'notes': 'Only Friday update provided, missing Wednesday update'
-        },
-        # Week 2 - Priya Sharma (Still perfect)
-        {
-            'employee': 'Priya Sharma',
-            'week': week2,
-            'status_hygiene': 'Yes',
-            'cancellation': 'No',
-            'updates': 'Yes',
-            'roles': 'Yes',
-            'documentation': 'Yes',
-            'lifecycle': 'Yes',
-            'zero_tolerance': 'No',
-            'overall': 'Pass',
-            'notes': 'All checks passed'
-        },
-        # Week 2 - Rahul Kumar (Unauthorized cancellation)
-        {
-            'employee': 'Rahul Kumar',
-            'week': week2,
-            'status_hygiene': 'Yes',
-            'cancellation': 'Yes - PROJ-456 cancelled w/o approval',
-            'updates': 'Yes',
-            'roles': 'Yes',
-            'documentation': 'Yes',
-            'lifecycle': 'Yes',
-            'zero_tolerance': 'No',
-            'overall': 'Fail',
-            'notes': 'Task PROJ-456 cancelled without manager approval'
-        },
-        # Week 3 - Aarti Singh (New employee, compliance issues)
-        {
-            'employee': 'Aarti Singh',
-            'week': week3,
-            'status_hygiene': 'No - Invalid transition: To Do → Done',
-            'cancellation': 'No',
-            'updates': 'No',
-            'roles': 'No - Assignee missing',
-            'documentation': 'No - Description incomplete',
-            'lifecycle': 'No - Skipped In Progress',
-            'zero_tolerance': 'Yes',
-            'overall': 'Fail',
-            'notes': 'Multiple violations; New team member needs training on process'
-        },
-        # Week 3 - Priya Sharma (Still perfect)
-        {
-            'employee': 'Priya Sharma',
-            'week': week3,
-            'status_hygiene': 'Yes',
-            'cancellation': 'No',
-            'updates': 'Yes',
-            'roles': 'Yes',
-            'documentation': 'Yes',
-            'lifecycle': 'Yes',
-            'zero_tolerance': 'No',
-            'overall': 'Pass',
-            'notes': 'All checks passed'
-        },
-        # Week 3 - Rahul Kumar (Improving)
-        {
-            'employee': 'Rahul Kumar',
-            'week': week3,
-            'status_hygiene': 'Yes',
-            'cancellation': 'No',
-            'updates': 'Yes',
-            'roles': 'Yes',
-            'documentation': 'Yes',
-            'lifecycle': 'Yes',
-            'zero_tolerance': 'No',
-            'overall': 'Pass',
-            'notes': 'All checks passed'
-        },
+    # Employee list (30 employees)
+    employees = [
+        'Gaurav Dadheech', 'Priya Sharma', 'Rahul Kumar', 'Aarti Singh', 'Amit Patel',
+        'Sneha Reddy', 'Vikram Malhotra', 'Neha Gupta', 'Arjun Verma', 'Kavita Nair',
+        'Rohan Desai', 'Ananya Iyer', 'Sanjay Chopra', 'Divya Menon', 'Karthik Rao',
+        'Megha Bose', 'Nikhil Sinha', 'Pooja Joshi', 'Tarun Singh', 'Ritu Kapoor',
+        'Varun Agarwal', 'Simran Kaur', 'Deepak Mehta', 'Swati Bansal', 'Aditya Sharma',
+        'Ishita Das', 'Manish Tiwari', 'Preeti Saxena', 'Rajesh Pandey', 'Anjali Mishra'
     ]
+    
+    # Compliance scenarios (realistic mix)
+    scenarios = {
+        'perfect': {
+            'status_hygiene': 'Yes', 'cancellation': 'No', 'updates': 'Yes',
+            'roles': 'Yes', 'documentation': 'Yes', 'lifecycle': 'Yes',
+            'zero_tolerance': 'No', 'overall': 'Pass', 'notes': 'All checks passed'
+        },
+        'missing_updates': {
+            'status_hygiene': 'Yes', 'cancellation': 'No', 'updates': 'No',
+            'roles': 'Yes', 'documentation': 'Yes', 'lifecycle': 'Yes',
+            'zero_tolerance': 'No', 'overall': 'Fail', 'notes': 'Missing Wed/Fri status updates'
+        },
+        'partial_updates': {
+            'status_hygiene': 'Yes', 'cancellation': 'No', 'updates': 'Partial',
+            'roles': 'Yes', 'documentation': 'Yes', 'lifecycle': 'Yes',
+            'zero_tolerance': 'No', 'overall': 'Fail', 'notes': 'Only Friday update provided, missing Wednesday'
+        },
+        'role_issues': {
+            'status_hygiene': 'Yes', 'cancellation': 'No', 'updates': 'Yes',
+            'roles': 'No - Reporter = Assignee', 'documentation': 'Yes', 'lifecycle': 'Yes',
+            'zero_tolerance': 'No', 'overall': 'Fail', 'notes': 'Reporter and Assignee are the same person'
+        },
+        'doc_issues': {
+            'status_hygiene': 'Yes', 'cancellation': 'No', 'updates': 'Yes',
+            'roles': 'Yes', 'documentation': 'No - No traceability links', 'lifecycle': 'Yes',
+            'zero_tolerance': 'No', 'overall': 'Fail', 'notes': 'Missing linked issues for traceability'
+        },
+        'status_hygiene_fail': {
+            'status_hygiene': 'No - Invalid transition', 'cancellation': 'No', 'updates': 'Yes',
+            'roles': 'Yes', 'documentation': 'Yes', 'lifecycle': 'Yes',
+            'zero_tolerance': 'No', 'overall': 'Fail', 'notes': 'Invalid workflow transition detected'
+        },
+        'lifecycle_violation': {
+            'status_hygiene': 'Yes', 'cancellation': 'No', 'updates': 'Yes',
+            'roles': 'Yes', 'documentation': 'Yes', 'lifecycle': 'No - Skipped In Progress',
+            'zero_tolerance': 'No', 'overall': 'Fail', 'notes': 'Lifecycle violation: skipped In Progress status'
+        },
+        'unauthorized_cancel': {
+            'status_hygiene': 'Yes', 'cancellation': 'Yes - Task cancelled w/o approval', 'updates': 'Yes',
+            'roles': 'Yes', 'documentation': 'Yes', 'lifecycle': 'Yes',
+            'zero_tolerance': 'No', 'overall': 'Fail', 'notes': 'Task cancelled without manager approval'
+        },
+        'multiple_violations': {
+            'status_hygiene': 'No', 'cancellation': 'No', 'updates': 'No',
+            'roles': 'No - Assignee missing', 'documentation': 'No - Description incomplete',
+            'lifecycle': 'No - Skipped In Progress', 'zero_tolerance': 'Yes',
+            'overall': 'Fail', 'notes': 'Multiple violations; Requires immediate training'
+        },
+        'minor_issues': {
+            'status_hygiene': 'Yes', 'cancellation': 'No', 'updates': 'Yes',
+            'roles': 'Yes', 'documentation': 'No - Due date missing', 'lifecycle': 'Yes',
+            'zero_tolerance': 'No', 'overall': 'Fail', 'notes': 'Due date not set on tasks'
+        }
+    }
+    
+    mock_data = []
+    
+    # Week 1: Generate varied compliance data
+    scenario_keys = list(scenarios.keys())
+    for i, employee in enumerate(employees):
+        # Distribute scenarios across employees (weighted toward pass/minor issues)
+        if i % 10 == 0:
+            scenario = scenarios['perfect']
+        elif i % 10 == 1:
+            scenario = scenarios['missing_updates']
+        elif i % 10 == 2:
+            scenario = scenarios['role_issues']
+        elif i % 10 == 3:
+            scenario = scenarios['doc_issues']
+        elif i % 10 == 4:
+            scenario = scenarios['perfect']
+        elif i % 10 == 5:
+            scenario = scenarios['partial_updates']
+        elif i % 10 == 6:
+            scenario = scenarios['status_hygiene_fail']
+        elif i % 10 == 7:
+            scenario = scenarios['perfect']
+        elif i % 10 == 8:
+            scenario = scenarios['minor_issues']
+        else:
+            scenario = scenarios['lifecycle_violation']
+        
+        mock_data.append({
+            'employee': employee,
+            'week': week1,
+            **scenario
+        })
+    
+    # Week 2: Show improvements for some, new issues for others
+    for i, employee in enumerate(employees):
+        if i % 10 == 0:
+            scenario = scenarios['perfect']
+        elif i % 10 == 1:
+            scenario = scenarios['perfect']  # Improved from week 1
+        elif i % 10 == 2:
+            scenario = scenarios['partial_updates']  # Still struggling
+        elif i % 10 == 3:
+            scenario = scenarios['perfect']  # Improved
+        elif i % 10 == 4:
+            scenario = scenarios['perfect']
+        elif i % 10 == 5:
+            scenario = scenarios['unauthorized_cancel']  # New issue
+        elif i % 10 == 6:
+            scenario = scenarios['minor_issues']  # Improved
+        elif i % 10 == 7:
+            scenario = scenarios['perfect']
+        elif i % 10 == 8:
+            scenario = scenarios['missing_updates']  # Regressed
+        else:
+            scenario = scenarios['doc_issues']
+        
+        mock_data.append({
+            'employee': employee,
+            'week': week2,
+            **scenario
+        })
+    
+    # Week 3: Further improvements, some persistent issues
+    for i, employee in enumerate(employees):
+        if i % 10 == 0:
+            scenario = scenarios['perfect']
+        elif i % 10 == 1:
+            scenario = scenarios['perfect']  # Maintained improvement
+        elif i % 10 == 2:
+            scenario = scenarios['perfect']  # Finally improved
+        elif i % 10 == 3:
+            scenario = scenarios['perfect']
+        elif i % 10 == 4:
+            scenario = scenarios['perfect']
+        elif i % 10 == 5:
+            scenario = scenarios['role_issues']  # Different issue
+        elif i % 10 == 6:
+            scenario = scenarios['perfect']  # Maintained
+        elif i % 10 == 7:
+            scenario = scenarios['perfect']
+        elif i % 10 == 8:
+            scenario = scenarios['perfect']  # Improved
+        else:
+            scenario = scenarios['multiple_violations']  # Persistent problems
+        
+        mock_data.append({
+            'employee': employee,
+            'week': week3,
+            **scenario
+        })
+    
     
     # Write data rows
     for row_idx, data in enumerate(mock_data, 2):
@@ -321,9 +349,10 @@ def create_demo_compliance_report():
     print(f"   ✓ Pass/Fail indicators with color coding")
     print(f"   ✓ Detailed auditor notes")
     print(f"\n📈 Sample Data Summary:")
-    print(f"   - Employees: Gaurav Dadheech, Priya Sharma, Rahul Kumar, Aarti Singh")
+    print(f"   - Employees: {len(set(d['employee'] for d in mock_data))} total")
     print(f"   - Weeks: {week1.strftime('%Y-%m-%d')}, {week2.strftime('%Y-%m-%d')}, {week3.strftime('%Y-%m-%d')}")
-    print(f"   - Pass Rate: {sum(1 for d in mock_data if d['overall'] == 'Pass')}/{len(mock_data)} ({100 * sum(1 for d in mock_data if d['overall'] == 'Pass') / len(mock_data):.0f}%)")
+    print(f"   - Total Records: {len(mock_data)}")
+    print(f"   - Pass Rate: {sum(1 for d in mock_data if d['overall'] == 'Pass')}/{len(mock_data)} ({100 * sum(1 for d in mock_data if d['overall'] == 'Pass') / len(mock_data):.1f}%)")
     print(f"\n💡 Open the file to view the compliance report!")
     print(f"{'='*70}\n")
     
