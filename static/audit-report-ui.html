@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JIRA Compliance Auditor - Detailed Report</title>
+
+    <!-- Marked.js for Markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <!-- Highlight.js for code highlighting -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 350px 1fr;
+            gap: 20px;
+            height: calc(100vh - 40px);
+        }
+
+        /* Sidebar Styles */
+        .sidebar {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            overflow-y: auto;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .logo-icon {
+            font-size: 1.8rem;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #555;
+        }
+
+        textarea {
+            width: 100%;
+            height: 200px;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            resize: vertical;
+            transition: border-color 0.3s;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #3498db;
+        }
+
+        .hint {
+            font-size: 0.8rem;
+            color: #777;
+        }
+
+        .btn {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3);
+        }
+
+        .btn:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .nav-link {
+            text-decoration: none;
+            color: #3498db;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .nav-link:hover {
+            color: #2980b9;
+        }
+
+        /* Main Content Styles */
+        .main-content {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .content-header {
+            padding: 20px 30px;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f8f9fa;
+        }
+
+        .report-title {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-sm {
+            padding: 8px 15px;
+            font-size: 0.9rem;
+        }
+
+        .btn-outline {
+            background: white;
+            border: 1px solid #ddd;
+            color: #555;
+        }
+
+        .btn-outline:hover {
+            background: #f1f1f1;
+            border-color: #ccc;
+        }
+
+        .report-preview {
+            flex: 1;
+            padding: 40px;
+            overflow-y: auto;
+            line-height: 1.6;
+            color: #2c3e50;
+        }
+
+        /* Markdown Styles */
+        .markdown-body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        }
+
+        .markdown-body h1 {
+            font-size: 2em;
+            border-bottom: 1px solid #eaecef;
+            padding-bottom: 0.3em;
+            margin-top: 0;
+            margin-bottom: 16px;
+            font-weight: 600;
+            line-height: 1.25;
+        }
+
+        .markdown-body h2 {
+            font-size: 1.5em;
+            border-bottom: 1px solid #eaecef;
+            padding-bottom: 0.3em;
+            margin-top: 24px;
+            margin-bottom: 16px;
+            font-weight: 600;
+            line-height: 1.25;
+        }
+
+        .markdown-body h3 {
+            font-size: 1.25em;
+            margin-top: 24px;
+            margin-bottom: 16px;
+            font-weight: 600;
+            line-height: 1.25;
+        }
+
+        .markdown-body p {
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+
+        .markdown-body code {
+            padding: 0.2em 0.4em;
+            margin: 0;
+            font-size: 85%;
+            background-color: rgba(27, 31, 35, 0.05);
+            border-radius: 3px;
+            font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
+        }
+
+        .markdown-body pre {
+            padding: 16px;
+            overflow: auto;
+            font-size: 85%;
+            line-height: 1.45;
+            background-color: #f6f8fa;
+            border-radius: 3px;
+        }
+
+        .markdown-body pre code {
+            display: inline;
+            max-width: auto;
+            padding: 0;
+            margin: 0;
+            overflow: visible;
+            line-height: inherit;
+            word-wrap: normal;
+            background-color: transparent;
+            border: 0;
+        }
+
+        .markdown-body ul,
+        .markdown-body ol {
+            padding-left: 2em;
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+
+        .markdown-body blockquote {
+            padding: 0 1em;
+            color: #6a737d;
+            border-left: 0.25em solid #dfe2e5;
+            margin-top: 0;
+            margin-bottom: 16px;
+        }
+
+        .markdown-body table {
+            display: block;
+            width: 100%;
+            overflow: auto;
+            margin-top: 0;
+            margin-bottom: 16px;
+            border-spacing: 0;
+            border-collapse: collapse;
+        }
+
+        .markdown-body table tr {
+            background-color: #fff;
+            border-top: 1px solid #c6cbd1;
+        }
+
+        .markdown-body table tr:nth-child(2n) {
+            background-color: #f6f8fa;
+        }
+
+        .markdown-body table th,
+        .markdown-body table td {
+            padding: 6px 13px;
+            border: 1px solid #dfe2e5;
+        }
+
+        .markdown-body table th {
+            font-weight: 600;
+        }
+
+        .markdown-body hr {
+            height: 0.25em;
+            padding: 0;
+            margin: 24px 0;
+            background-color: #e1e4e8;
+            border: 0;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #95a5a6;
+            text-align: center;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            opacity: 0.5;
+        }
+
+        /* Success/Error Toasts */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+            transform: translateX(120%);
+            transition: transform 0.3s ease;
+            z-index: 1000;
+        }
+
+        .toast.success {
+            background: #2ecc71;
+        }
+
+        .toast.error {
+            background: #e74c3c;
+        }
+
+        .toast.show {
+            transform: translateX(0);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <!-- Sidebar Controls -->
+        <div class="sidebar">
+            <div class="logo">
+                <span class="logo-icon">🕵️‍♂️</span>
+                Senior Auditor
+            </div>
+
+            <div class="input-group">
+                <label for="ticketInput">Target Tickets</label>
+                <textarea id="ticketInput"
+                    placeholder="Enter Jira Issue Keys&#10;One per line or comma-separated&#10;Example:&#10;PROJ-123&#10;PROJ-456&#10;PROJ-789"></textarea>
+                <div class="hint">Enter specific tickets to audit against all 22 compliance criteria.</div>
+            </div>
+
+            <button id="generateBtn" class="btn btn-primary">
+                <span id="btnText">Generate Audit Report</span>
+            </button>
+
+            <div style="margin-top: 10px; border-top: 1px solid #eee; padding-top: 15px;">
+                <label>Audit Scope</label>
+                <ul style="font-size: 0.85rem; color: #666; padding-left: 20px; margin-top: 5px;">
+                    <li>11 Automated Checks</li>
+                    <li>11 Manual Heuristic Checks</li>
+                    <li>Zero-Tolerance Detection</li>
+                    <li>Recommendation Engine</li>
+                </ul>
+            </div>
+
+            <a href="/compliance" class="nav-link">
+                ← Back to Weekly Dashboard
+            </a>
+        </div>
+
+        <!-- Main Content (Report View) -->
+        <div class="main-content">
+            <div class="content-header">
+                <div class="report-title" id="reportTitle">Audit Report Preview</div>
+                <div class="actions">
+                    <button class="btn btn-sm btn-outline" id="copyMarkdownBtn" disabled>
+                        📋 Copy Markdown
+                    </button>
+                    <a id="downloadLink" href="#" class="btn btn-sm btn-outline"
+                        style="display: none; text-decoration: none;">
+                        💾 Download
+                    </a>
+                </div>
+            </div>
+
+            <div class="report-preview markdown-body" id="reportPreview">
+                <div class="empty-state">
+                    <div class="empty-state-icon">📝</div>
+                    <h3>Ready to Audit</h3>
+                    <p>Enter ticket keys to generate a deep-dive compliance audit.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toasts -->
+    <div id="toast" class="toast"></div>
+
+    <script>
+        const generateBtn = document.getElementById('generateBtn');
+        const ticketInput = document.getElementById('ticketInput');
+        const reportPreview = document.getElementById('reportPreview');
+        const btnText = document.getElementById('btnText');
+
+        let currentReportMarkdown = "";
+
+        generateBtn.addEventListener('click', async () => {
+            const input = ticketInput.value.trim();
+            if (!input) {
+                showToast('Please enter at least one ticket key', 'error');
+                return;
+            }
+
+            // Parse tickets
+            const tickets = input.split(/[\n,]+/).map(t => t.trim()).filter(t => t);
+
+            if (tickets.length === 0) {
+                showToast('No valid ticket keys found', 'error');
+                return;
+            }
+
+            // UI Loading State
+            setLoading(true);
+
+            try {
+                const response = await fetch('/api/reports/audit/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        ticket_keys: tickets,
+                        format: 'markdown'
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) throw new Error(data.error || 'Failed to generate report');
+
+                if (data.success) {
+                    showToast('Audit Report Generated!', 'success');
+
+                    // Fetch the file content to display
+                    // The API returns a file path, we need to fetch it or just display success
+                    // Ideally API should return content if small, or we re-fetch the file
+                    // For now, let's just assume we can fetch it via the download link
+
+                    const reportContent = await fetchContent(data.download_url);
+                    renderReport(reportContent);
+
+                    // Setup download button
+                    const dlLink = document.getElementById('downloadLink');
+                    dlLink.href = data.download_url;
+                    dlLink.style.display = 'inline-flex';
+
+                    document.getElementById('copyMarkdownBtn').disabled = false;
+                }
+
+            } catch (error) {
+                console.error(error);
+                showToast(error.message, 'error');
+                reportPreview.innerHTML = `
+                    <div class="empty-state" style="color: #e74c3c;">
+                        <div class="empty-state-icon">❌</div>
+                        <h3>Generation Failed</h3>
+                        <p>${error.message}</p>
+                    </div>
+                `;
+            } finally {
+                setLoading(false);
+            }
+        });
+
+        async function fetchContent(url) {
+            const res = await fetch(url);
+            return await res.text();
+        }
+
+        function renderReport(markdown) {
+            currentReportMarkdown = markdown;
+            reportPreview.innerHTML = marked.parse(markdown);
+            // Highlight code blocks
+            hljs.highlightAll();
+        }
+
+        document.getElementById('copyMarkdownBtn').addEventListener('click', () => {
+            if (!currentReportMarkdown) return;
+            navigator.clipboard.writeText(currentReportMarkdown).then(() => {
+                showToast('Markdown copied to clipboard', 'success');
+            });
+        });
+
+        function setLoading(isLoading) {
+            generateBtn.disabled = isLoading;
+            if (isLoading) {
+                btnText.innerHTML = '<span class="spinner"></span> Auditing...';
+                reportPreview.innerHTML = `
+                    <div class="empty-state">
+                        <div class="spinner" style="border-color: #3498db; border-top-color: transparent; width: 50px; height: 50px; margin-bottom: 20px;"></div>
+                        <h3>Performing Audit</h3>
+                        <p>Evaluator is checking compliance criteria...</p>
+                    </div>
+                `;
+            } else {
+                btnText.textContent = 'Generate Audit Report';
+            }
+        }
+
+        function showToast(msg, type) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.className = `toast ${type} show`;
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+    </script>
+</body>
+
+</html>

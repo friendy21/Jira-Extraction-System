@@ -1,0 +1,126 @@
+# Team and Organization Mappings
+
+organizations:
+  - name: "Acumen-strategy"
+    code: "AS"
+    description: "Acumen Strategy Organization"
+    teams:
+      - code: "ASA"
+        name: "ASA Team"
+        description: "Acumen Strategy Analytics"
+        jira_project_keys: ["ASA"]
+        email_recipients: []
+      - code: "CH"
+        name: "CH Team"
+        description: "Corporate Health"
+        jira_project_keys: ["CH"]
+        email_recipients: []
+      - code: "CT"
+        name: "CT Team"
+        description: "Corporate Technology"
+        jira_project_keys: ["CT"]
+        email_recipients: []
+      - code: "LEAD"
+        name: "Leadership Team"
+        description: "Leadership and Management"
+        jira_project_keys: ["LEAD"]
+        email_recipients: []
+      - code: "MH"
+        name: "MH Team"
+        description: "Mental Health"
+        jira_project_keys: ["MH"]
+        email_recipients: []
+      - code: "OH"
+        name: "OH Team"
+        description: "Occupational Health"
+        jira_project_keys: ["OH"]
+        email_recipients: []
+      - code: "OTAS"
+        name: "OTAS Team"
+        description: "Occupational Therapy and Support"
+        jira_project_keys: ["OTAS"]
+        email_recipients: []
+      - code: "SH"
+        name: "SH Team"
+        description: "Safety and Health"
+        jira_project_keys: ["SH"]
+        email_recipients: []
+      - code: "SODR"
+        name: "SODR Team"
+        description: "Strategic Operations and Delivery"
+        jira_project_keys: ["SODR"]
+        email_recipients: []
+      - code: "STRAT"
+        name: "Strategy Team"
+        description: "Strategic Planning"
+        jira_project_keys: ["STRAT"]
+        email_recipients: []
+
+  - name: "Glynac"
+    code: "GL"
+    description: "Glynac Organization"
+    teams:
+      - code: "BEE"
+        name: "BEE Team"
+        description: "Backend Engineering Excellence"
+        jira_project_keys: ["BEE"]
+        email_recipients: []
+      - code: "AITEAM"
+        name: "AI Team"
+        description: "Artificial Intelligence Development"
+        jira_project_keys: ["AITEAM"]
+        email_recipients: []
+      - code: "DHAP"
+        name: "DHAP Team"
+        description: "Digital Health Application Platform"
+        jira_project_keys: ["DHAP"]
+        email_recipients: []
+      - code: "DEMT"
+        name: "DEMT Team"
+        description: "Data Engineering and Management"
+        jira_project_keys: ["DEMT"]
+        email_recipients: []
+      - code: "DEV"
+        name: "DEV Team"
+        description: "Development Team"
+        jira_project_keys: ["DEV"]
+        email_recipients: []
+      - code: "FRONT"
+        name: "Frontend Team"
+        description: "Frontend Development"
+        jira_project_keys: ["FRONT"]
+        email_recipients: []
+
+# JQL query templates for data extraction
+jql_templates:
+  all_issues: "project in ({project_keys}) ORDER BY updated DESC"
+  recent_issues: "project in ({project_keys}) AND updated >= -{days}d ORDER BY updated DESC"
+  open_issues: "project in ({project_keys}) AND resolution = Unresolved ORDER BY priority DESC"
+  sprint_issues: "project in ({project_keys}) AND Sprint = {sprint_id}"
+  epic_issues: "project in ({project_keys}) AND \"Epic Link\" = {epic_key}"
+
+# Priority mapping (Jira priority name -> numeric weight)
+priority_weights:
+  Highest: 5
+  High: 4
+  Medium: 3
+  Low: 2
+  Lowest: 1
+
+# Status category mapping
+status_categories:
+  to_do:
+    - "To Do"
+    - "Open"
+    - "Backlog"
+    - "New"
+  in_progress:
+    - "In Progress"
+    - "In Review"
+    - "In Development"
+    - "Testing"
+  done:
+    - "Done"
+    - "Closed"
+    - "Resolved"
+    - "Complete"

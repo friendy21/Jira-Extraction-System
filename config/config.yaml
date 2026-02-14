@@ -1,0 +1,68 @@
+# Jira MCP System Configuration
+
+jira:
+  # Jira Cloud instance URL
+  url: "${JIRA_URL}"
+  # API authentication
+  username: "${JIRA_USERNAME}"
+  api_token: "${JIRA_API_TOKEN}"
+  # Rate limiting
+  requests_per_second: 5
+  max_retries: 3
+  retry_delay: 1
+
+database:
+  # PostgreSQL connection
+  host: "${DB_HOST:-localhost}"
+  port: ${DB_PORT:-5432}
+  name: "${DB_NAME:-jira_dashboard}"
+  user: "${DB_USER:-jira_etl}"
+  password: "${DB_PASSWORD}"
+  # Connection pool settings
+  pool_size: 5
+  max_overflow: 10
+  pool_timeout: 30
+
+etl:
+  # Batch processing settings
+  batch_size: 1000
+  # Incremental load settings
+  incremental: true
+  # Data retention (days)
+  retention_days: 365
+  # Fields to expand in API calls
+  expand_fields:
+    - changelog
+    - renderedFields
+    - names
+    - schema
+    - transitions
+    - operations
+    - editmeta
+
+reports:
+  # Output directory for generated reports
+  output_dir: "./outputs/dashboards"
+  # Default date range for reports (days)
+  default_range_days: 30
+  # Excel styling
+  style:
+    header_color: "1F4E79"
+    header_font_color: "FFFFFF"
+    alternate_row_color: "D6DCE4"
+    chart_style: 10
+
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "./logs/jira_mcp.log"
+  max_bytes: 10485760  # 10MB
+  backup_count: 5
+
+scheduler:
+  # Enable scheduled runs
+  enabled: false
+  # ETL schedule (cron format)
+  etl_schedule: "0 6 * * *"  # Daily at 6 AM
+  # Report generation schedule
+  report_schedule: "0 7 * * 1"  # Weekly on Monday at 7 AM
